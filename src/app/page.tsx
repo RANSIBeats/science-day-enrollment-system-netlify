@@ -21,39 +21,72 @@ export default function Home() {
     category: '',
   })
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
     
     try {
-      const response = await fetch('/.netlify/functions/submit-registration', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Mock successful submission
+      console.log('Registration submitted:', formData)
+      setSubmitStatus('success')
+      
+      // Reset form
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        school: '',
+        grade: '',
+        projectTitle: '',
+        projectDescription: '',
+        category: '',
       })
-
-      if (response.ok) {
-        alert('Registration submitted successfully!')
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          phone: '',
-          school: '',
-          grade: '',
-          projectTitle: '',
-          projectDescription: '',
-          category: '',
-        })
-      } else {
-        alert('Error submitting registration')
-      }
+      
+      // Reset status after 3 seconds
+      setTimeout(() => setSubmitStatus('idle'), 3000)
+      
     } catch (error) {
       console.error('Error:', error)
-      alert('Error submitting registration')
+      setSubmitStatus('error')
+      setTimeout(() => setSubmitStatus('idle'), 3000)
+    } finally {
+      setIsSubmitting(false)
     }
   }
+
+  // Mock schools data
+  const schools = [
+    { id: 'school1', name: 'Lincoln High School' },
+    { id: 'school2', name: 'Washington Academy' },
+    { id: 'school3', name: 'Roosevelt Institute' },
+    { id: 'school4', name: 'Jefferson Preparatory' },
+    { id: 'school5', name: 'Madison Science Magnet' }
+  ]
+
+  // Mock categories
+  const categories = [
+    { id: 'biology', name: 'Biology' },
+    { id: 'chemistry', name: 'Chemistry' },
+    { id: 'physics', name: 'Physics' },
+    { id: 'engineering', name: 'Engineering' },
+    { id: 'environmental', name: 'Environmental Science' },
+    { id: 'computer', name: 'Computer Science' }
+  ]
+
+  // Mock grades
+  const grades = [
+    { id: '9', name: '9th Grade' },
+    { id: '10', name: '10th Grade' },
+    { id: '11', name: '11th Grade' },
+    { id: '12', name: '12th Grade' }
+  ]
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -75,6 +108,18 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {submitStatus === 'success' && (
+              <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                Registration submitted successfully! We'll review your application and get back to you soon.
+              </div>
+            )}
+            
+            {submitStatus === 'error' && (
+              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                Error submitting registration. Please try again.
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -128,11 +173,11 @@ export default function Home() {
                       <SelectValue placeholder="Select your school" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="school1">Lincoln High School</SelectItem>
-                      <SelectItem value="school2">Washington Academy</SelectItem>
-                      <SelectItem value="school3">Roosevelt Institute</SelectItem>
-                      <SelectItem value="school4">Jefferson Preparatory</SelectItem>
-                      <SelectItem value="school5">Madison Science Magnet</SelectItem>
+                      {schools.map((school) => (
+                        <SelectItem key={school.id} value={school.id}>
+                          {school.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -143,10 +188,11 @@ export default function Home() {
                       <SelectValue placeholder="Select grade" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="9">9th Grade</SelectItem>
-                      <SelectItem value="10">10th Grade</SelectItem>
-                      <SelectItem value="11">11th Grade</SelectItem>
-                      <SelectItem value="12">12th Grade</SelectItem>
+                      {grades.map((grade) => (
+                        <SelectItem key={grade.id} value={grade.id}>
+                          {grade.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -169,12 +215,11 @@ export default function Home() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="biology">Biology</SelectItem>
-                    <SelectItem value="chemistry">Chemistry</SelectItem>
-                    <SelectItem value="physics">Physics</SelectItem>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="environmental">Environmental Science</SelectItem>
-                    <SelectItem value="computer">Computer Science</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -191,12 +236,24 @@ export default function Home() {
                 />
               </div>
 
-              <Button type="submit" className="w-full">
-                Submit Registration
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Submit Registration'}
               </Button>
             </form>
           </CardContent>
         </Card>
+
+        <div className="mt-8 text-center">
+          <Card className="inline-block">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-2">Need to manage registrations?</h3>
+              <p className="text-gray-600 mb-4">Access the dashboard to review and approve student submissions.</p>
+              <Button onClick={() => window.location.href = '/dashboard'}>
+                Go to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </main>
   )
